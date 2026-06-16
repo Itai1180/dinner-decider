@@ -1,16 +1,897 @@
 <!DOCTYPE html>
-<html lang="zh">
-
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <title>随机晚饭决定器</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今晚吃什么 - 随机晚饭决定器</title>
+    <style>
+        :root {
+            --color-primary: #ff6b35;
+            --color-primary-dark: #ff4d4d;
+            --color-secondary: #ffb800;
+            --color-accent: #ff9f43;
+            --color-bg: #fff7f0;
+            --color-text: #2b2b2b;
+            --color-text-light: #666;
+            --color-text-lighter: #999;
+            --color-border: rgba(255, 107, 53, 0.2);
+            --color-shadow: rgba(255, 76, 76, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.78);
+            --glass-border: rgba(255, 184, 0, 0.2);
+            --glass-blur: 8px;
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --page-max-width: 740px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            min-height: 100vh;
+            font-family: var(--font-family);
+            color: var(--color-text);
+            background:
+                radial-gradient(circle at 8% 8%, rgba(255, 76, 76, 0.35), transparent 28%),
+                radial-gradient(circle at 92% 12%, rgba(255, 184, 0, 0.35), transparent 28%),
+                radial-gradient(circle at 50% 92%, rgba(255, 107, 53, 0.25), transparent 32%),
+                linear-gradient(180deg, #fff7f0 0%, #ffe9d6 100%);
+            background-size: 200% 200%;
+            animation: bgShift 12s ease-in-out infinite alternate;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        /* ---- 导航 ---- */
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: var(--page-max-width);
+            margin: 0 auto 24px;
+            padding: 12px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 24px var(--color-shadow);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--color-primary);
+            white-space: nowrap;
+        }
+        .nav .links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .nav .links a {
+            text-decoration: none;
+            color: var(--color-text-light);
+            font-weight: 600;
+            transition: color 0.2s;
+            font-size: 15px;
+        }
+        .nav .links a.active,
+        .nav .links a:hover {
+            color: var(--color-primary);
+        }
+        .nav .user-info {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav .user-info a {
+            text-decoration: none;
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .nav .user-info span {
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        /* ---- 主卡片 ---- */
+        .main-card {
+            width: 100%;
+            max-width: var(--page-max-width);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 12px 35px var(--color-shadow);
+            padding: 32px 36px 40px;
+            transition: 0.3s ease;
+            text-align: center;
+        }
+        .main-card:hover {
+            box-shadow: 0 16px 45px rgba(255, 76, 76, 0.18);
+        }
+
+        .main-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--color-text);
+        }
+        .main-sub {
+            color: var(--color-text-light);
+            font-size: 15px;
+            margin-bottom: 18px;
+        }
+
+        /* ---- 筛选栏 ---- */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .filter-bar label {
+            font-weight: 600;
+            color: var(--color-text-light);
+            font-size: 14px;
+        }
+        .form-select {
+            padding: 8px 32px 8px 14px;
+            font-size: 14px;
+            color: var(--color-text);
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            min-width: 120px;
+        }
+
+        /* ---- 按钮通用 ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: 0.22s ease;
+            text-decoration: none;
+            font-family: var(--font-family);
+        }
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            box-shadow: 0 8px 20px rgba(255, 76, 76, 0.25);
+        }
+        .btn-primary:hover:not(:disabled) {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(255, 76, 76, 0.35);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            color: var(--color-primary);
+            background: #fff;
+            border: 1px solid var(--color-border);
+        }
+        .btn-secondary:hover {
+            background: #fff0e6;
+            border-color: var(--color-primary);
+        }
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 13px;
+            border-radius: var(--radius-sm);
+        }
+        .btn-lg {
+            padding: 14px 48px;
+            font-size: 18px;
+        }
+
+        /* ---- 转盘 ---- */
+        .wheel-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 6px 0 16px;
+        }
+        .wheel-wrapper canvas {
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            box-shadow: 0 8px 32px rgba(255, 76, 76, 0.15);
+            background: #faf0e8;
+        }
+
+        /* ---- 结果 ---- */
+        .result-box {
+            margin-top: 24px;
+            padding: 20px 24px;
+            border-radius: var(--radius-md);
+            background: #fff8f0;
+            border: 2px solid #ffd8a8;
+            display: none;
+        }
+        .result-box.show {
+            display: block;
+            animation: popIn 0.4s ease;
+        }
+        .result-box h3 {
+            color: #ff6b6b;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+        .result-box .meta {
+            color: #888;
+            font-size: 14px;
+        }
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ---- Toast ---- */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 22px;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.4s ease;
+            max-width: 380px;
+        }
+        .toast-success {
+            background: #6bcb77;
+        }
+        .toast-error {
+            background: #ff6b6b;
+        }
+        .toast-info {
+            background: #4d96ff;
+        }
+        @keyframes slideIn {
+            0% {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .toast-out {
+            animation: slideOut 0.3s ease forwards;
+        }
+        @keyframes slideOut {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* ---- 响应式 ---- */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            .nav {
+                padding: 10px 16px;
+                border-radius: var(--radius-md);
+            }
+            .nav .logo {
+                font-size: 17px;
+            }
+            .nav .links {
+                gap: 14px;
+            }
+            .nav .links a {
+                font-size: 13px;
+            }
+            .main-card {
+                padding: 20px 16px 28px;
+                border-radius: var(--radius-md);
+            }
+            .main-title {
+                font-size: 20px;
+            }
+            .main-sub {
+                font-size: 13px;
+            }
+            .filter-bar {
+                gap: 8px;
+            }
+            .filter-bar label {
+                font-size: 13px;
+            }
+            .form-select {
+                font-size: 13px;
+                padding: 6px 28px 6px 12px;
+                min-width: 100px;
+            }
+            .btn-lg {
+                padding: 12px 32px;
+                font-size: 16px;
+            }
+            .result-box h3 {
+                font-size: 20px;
+            }
+            .result-box .meta {
+                font-size: 13px;
+            }
+        }
+        @media (max-width: 400px) {
+            .nav .links {
+                gap: 10px;
+            }
+            .nav .links a {
+                font-size: 12px;
+            }
+            .nav .user-info a,
+            .nav .user-info span {
+                font-size: 12px;
+            }
+            .main-title {
+                font-size: 18px;
+            }
+            .btn-lg {
+                padding: 10px 24px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <h1>随机晚饭决定器</h1>
-    <p>首页占位页，后续由 D 同学接管完善。</p>
-    <p><a href="/login.html">去登录</a></p>
-    <p><a href="/register.html">去注册</a></p>
-</body>
 
+    <!-- ====== 导航 ====== -->
+    <nav class="nav">
+        <div class="logo">🍽 晚饭决定器</div>
+        <div class="links">
+            <a href="index.html" class="active">大转盘</a>
+            <a href="history.html">📋 历史记录</a>
+            <a href="admin.html" id="admin-link" style="display:none">餐馆管理</a>
+        </div>
+        <div class="user-info" id="user-box">
+            <a href="login.html">登录</a>
+            <a href="register.html">注册</a>
+        </div>
+    </nav>
+
+    <!-- ====== 主内容 ====== -->
+    <div class="main-card">
+        <h1 class="main-title">🎰 今晚吃什么？转转看！</h1>
+        <p class="main-sub">选好分类，点击转盘，命运交给美食</p>
+
+        <!-- 筛选 -->
+        <div class="filter-bar">
+            <label for="category-select">分类：</label>
+            <select id="category-select" class="form-select">
+                <option value="">全部</option>
+                <option value="fastfood">🍔 快餐</option>
+                <option value="hotpot">🍲 火锅</option>
+                <option value="snack">🍜 小吃</option>
+                <option value="chinese">🍱 中餐</option>
+                <option value="western">🍝 西餐</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="loadRestaurants()">🔄 刷新</button>
+        </div>
+
+        <!-- 转盘 -->
+        <div class="wheel-wrapper">
+            <canvas id="wheel" width="500" height="500"></canvas>
+        </div>
+
+        <!-- 抽取按钮 -->
+        <button class="btn btn-primary btn-lg" id="spin-btn" onclick="startSpin()">🎲 开始抽取</button>
+
+        <!-- 结果 -->
+        <div class="result-box" id="result-box">
+            <h3 id="result-name">--</h3>
+            <div class="meta" id="result-meta">--</div>
+        </div>
+    </div>
+
+    <!-- ====== Toast 容器 ====== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // ============================================================
+        //  音效引擎 (Web Audio API)
+        // ============================================================
+        function playTone(freq, duration, type = 'sine', volume = 0.3) {
+            try {
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) { /* 静默降级 */ }
+        }
+
+        // 旋转时的“嗒嗒”声
+        function playTick() {
+            playTone(800 + Math.random() * 400, 0.04, 'square', 0.12);
+        }
+
+        // 停止时的胜利和弦 (C-E-G)
+        function playWin() {
+            playTone(523, 0.15, 'sine', 0.25); // C5
+            setTimeout(() => playTone(659, 0.15, 'sine', 0.25), 150); // E5
+            setTimeout(() => playTone(784, 0.25, 'sine', 0.30), 300); // G5
+        }
+
+        // ============================================================
+        //  Mock & API
+        // ============================================================
+        const CONFIG = {
+            USE_MOCK: false,
+            MOCK_DELAY: 300,
+            API_BASE: '/api'
+        };
+        let currentUser = null;
+
+        const MOCK_DATA = {
+            users: [
+                { id: 1, username: 'admin', nickname: '管理员', is_admin: 1 },
+                { id: 2, username: 'test', nickname: '测试用户', is_admin: 0 },
+            ],
+            restaurants: [
+                { id: 1, name: '麦当劳', category: 'fastfood', avg_price: 35, weight: 5, is_active: 1, is_deleted: 0,
+                    draw_count: 12 },
+                { id: 2, name: '肯德基', category: 'fastfood', avg_price: 35, weight: 4, is_active: 1, is_deleted: 0,
+                    draw_count: 8 },
+                { id: 3, name: '海底捞', category: 'hotpot', avg_price: 120, weight: 2, is_active: 1, is_deleted: 0,
+                    draw_count: 3 },
+                { id: 4, name: '沙县小吃', category: 'snack', avg_price: 20, weight: 6, is_active: 1, is_deleted: 0,
+                    draw_count: 12 },
+                { id: 5, name: '兰州拉面', category: 'snack', avg_price: 25, weight: 5, is_active: 1, is_deleted: 0,
+                    draw_count: 9 },
+                { id: 6, name: '黄焖鸡米饭', category: 'chinese', avg_price: 28, weight: 4, is_active: 1, is_deleted: 0,
+                    draw_count: 6 },
+                { id: 7, name: '必胜客', category: 'western', avg_price: 90, weight: 2, is_active: 1, is_deleted: 0,
+                    draw_count: 4 },
+                { id: 8, name: '煲仔饭', category: 'chinese', avg_price: 30, weight: 3, is_active: 1, is_deleted: 0,
+                    draw_count: 5 },
+                { id: 9, name: '麻辣烫', category: 'snack', avg_price: 32, weight: 5, is_active: 1, is_deleted: 0,
+                    draw_count: 7 },
+                { id: 10, name: '日式寿司', category: 'western', avg_price: 110, weight: 1, is_active: 1, is_deleted: 0,
+                    draw_count: 2 },
+            ],
+            history: [
+                { id: 1, restaurant_id: 1, restaurant_name: '沙县小吃', category: 'snack', drawn_at: '2026-06-16 19:30:00' },
+                { id: 2, restaurant_id: 3, restaurant_name: '肯德基', category: 'fastfood', drawn_at: '2026-06-16 18:20:00' },
+                { id: 3, restaurant_id: 5, restaurant_name: '兰州拉面', category: 'snack', drawn_at: '2026-06-16 12:10:00' },
+                { id: 4, restaurant_id: 2, restaurant_name: '海底捞', category: 'hotpot', drawn_at: '2026-06-15 20:00:00' },
+                { id: 5, restaurant_id: 6, restaurant_name: '黄焖鸡米饭', category: 'chinese', drawn_at: '2026-06-15 19:00:00' },
+            ],
+        };
+        let _mockId = 10,
+            _mockHistId = 5;
+
+        function mockDelay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        async function apiFetch(url, options = {}) {
+            const fullUrl = url.startsWith('/api/') ? url : `/api${url}`;
+            if (!CONFIG.USE_MOCK) {
+                try {
+                    const resp = await fetch(fullUrl, {
+                        ...options,
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+                    });
+                    return await resp.json();
+                } catch (e) { return { code: 5000, msg: '网络异常', data: null }; }
+            }
+            await mockDelay(CONFIG.MOCK_DELAY);
+            const method = options.method || 'GET';
+            const body = options.body ? JSON.parse(options.body) : {};
+            const path = fullUrl.replace('/api', '').split('?')[0];
+
+            if (path === '/me/' && method === 'GET') {
+                return currentUser ? { code: 200, msg: '操作成功', data: currentUser } : { code: 4010, msg: '未登录',
+                    data: null };
+            }
+            if (path === '/login/' && method === 'POST') {
+                const u = MOCK_DATA.users.find(u => u.username === body.username);
+                if (!u || (body.password !== '123456' && body.password !== 'admin123')) {
+                    return { code: 4002, msg: '账号或密码错误', data: null };
+                }
+                currentUser = { ...u };
+                return { code: 200, msg: '操作成功', data: { user_id: u.id, nickname: u.nickname, is_admin: u.is_admin } };
+            }
+            if (path === '/logout/' && method === 'POST') { currentUser = null; return { code: 200, msg: '操作成功',
+                    data: null }; }
+            if (path === '/restaurants/' && method === 'GET') {
+                const urlObj = new URL(fullUrl, 'http://mock');
+                const category = urlObj.searchParams.get('category') || '';
+                let list = MOCK_DATA.restaurants.filter(r => !r.is_deleted);
+                if (category) list = list.filter(r => r.category === category);
+                return { code: 200, msg: '操作成功', data: { total: list.length, page: 1, page_size: 100, list } };
+            }
+            if (path === '/random-dinner/' && method === 'POST') {
+                const category = body.category || '';
+                let pool = MOCK_DATA.restaurants.filter(r => r.is_active && !r.is_deleted);
+                if (category) pool = pool.filter(r => r.category === category);
+                if (pool.length === 0) return { code: 4004, msg: '无可用候选', data: null };
+                const totalWeight = pool.reduce((s, r) => s + r.weight, 0);
+                let rand = Math.random() * totalWeight;
+                let chosen = pool[0];
+                for (const r of pool) { rand -= r.weight; if (rand <= 0) { chosen = r; break; } }
+                MOCK_DATA.restaurants.find(r => r.id === chosen.id).draw_count += 1;
+                const hist = {
+                    id: ++_mockHistId,
+                    restaurant_id: chosen.id,
+                    restaurant_name: chosen.name,
+                    category: chosen.category,
+                    drawn_at: new Date().toLocaleString('zh-CN').replace(/\//g, '-')
+                };
+                MOCK_DATA.history.unshift(hist);
+                return {
+                    code: 200,
+                    msg: '今晚就吃它！',
+                    data: {
+                        restaurant_id: chosen.id,
+                        name: chosen.name,
+                        category: chosen.category,
+                        avg_price: chosen.avg_price,
+                        weight: chosen.weight,
+                        history_id: hist.id,
+                        drawn_at: hist.drawn_at
+                    }
+                };
+            }
+            if (path === '/history/' && method === 'GET') {
+                return { code: 200, msg: '操作成功', data: { total: MOCK_DATA.history.length, page: 1, page_size: 100,
+                        list: MOCK_DATA.history } };
+            }
+            return { code: 404, msg: '接口未定义', data: null };
+        }
+
+        function showToast(message, type = 'info', duration = 3000) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 300); }, duration);
+        }
+
+        function getCategoryEmoji(category) {
+            const map = { fastfood: '🍔', hotpot: '🍲', snack: '🍜', chinese: '🍱', western: '🍝', other: '🍽️' };
+            return map[category] || '🍽️';
+        }
+
+        function getCategoryLabel(category) {
+            const map = { fastfood: '快餐', hotpot: '火锅', snack: '小吃', chinese: '中餐', western: '西餐', other: '其他' };
+            return map[category] || category;
+        }
+
+        async function getCurrentUser() {
+            if (currentUser) return currentUser;
+            const data = await apiFetch('/api/me/');
+            if (data.code === 200) { currentUser = data.data; return currentUser; }
+            return null;
+        }
+
+        // ============================================================
+        //  页面逻辑
+        // ============================================================
+        let wheel;
+        let restaurants = [];
+        let currentCategory = '';
+
+        function $(id) { return document.getElementById(id); }
+
+        async function init() {
+            const user = await getCurrentUser();
+            if (user) {
+                $('user-box').innerHTML =
+                    `<span>${user.nickname || user.username}</span> <a href="#" onclick="event.preventDefault();logout()">退出</a>`;
+                if (user.is_admin) $('admin-link').style.display = 'inline';
+            }
+            await loadRestaurants();
+        }
+
+        async function logout() {
+            await apiFetch('/api/logout/', { method: 'POST' });
+            location.reload();
+        }
+
+        async function loadRestaurants() {
+            currentCategory = $('category-select').value;
+            try {
+                const params = new URLSearchParams();
+                if (currentCategory) params.set('category', currentCategory);
+                const data = await apiFetch('/api/restaurants/?' + params.toString());
+                if (data.code === 200) {
+                    restaurants = data.data.list || [];
+                    if (!wheel) {
+                        wheel = new DinnerWheel('wheel', restaurants);
+                    } else {
+                        wheel.setOptions(restaurants);
+                    }
+                    if (restaurants.length === 0) {
+                        showToast('该分类下没有可用候选', 'error');
+                    }
+                } else {
+                    showToast(data.msg || '加载失败', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function startSpin() {
+            if (!currentUser) {
+                showToast('请先登录', 'error');
+                setTimeout(() => location.href = 'login.html', 600);
+                return;
+            }
+            if (restaurants.length === 0) {
+                showToast('没有可抽取的候选', 'error');
+                return;
+            }
+            $('spin-btn').disabled = true;
+            $('result-box').classList.remove('show');
+            try {
+                const body = currentCategory ? { category: currentCategory } : {};
+                const result = await apiFetch('/api/random-dinner/', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                if (result.code !== 200) {
+                    showToast(result.msg || '抽取失败', 'error');
+                    $('spin-btn').disabled = false;
+                    return;
+                }
+                const data = result.data;
+                let targetIdx = restaurants.findIndex(r => r.id === data.restaurant_id);
+                if (targetIdx === -1) targetIdx = 0;
+                wheel.spinTo(targetIdx, 4000, () => {
+                    // 胜利音效
+                    playWin();
+                    $('result-name').textContent = `🎉 ${data.name}`;
+                    $('result-meta').innerHTML =
+                        `分类：${getCategoryLabel(data.category)} &nbsp;|&nbsp; 人均 ¥${data.avg_price} &nbsp;|&nbsp; 权重 ${data.weight} &nbsp;|&nbsp; ${data.drawn_at || ''}`;
+                    $('result-box').classList.add('show');
+                    $('spin-btn').disabled = false;
+                    showToast('今晚就吃它！', 'success');
+                });
+            } catch (e) {
+                $('spin-btn').disabled = false;
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // ============================================================
+        //  转盘类 (包含音效 + 优化字体样式)
+        // ============================================================
+        class DinnerWheel {
+            constructor(canvasId, options) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.options = options || [];
+                this.angle = 0;
+                this.size = 500;
+                this.colors = ['#ff6b6b', '#ffb800', '#ff9f43', '#6bcb77', '#4d96ff', '#a78bfa', '#f472b6', '#34d399',
+                    '#f59e0b', '#ec4899'
+                ];
+                this.draw();
+            }
+
+            setOptions(options) {
+                this.options = options || [];
+                this.angle = 0;
+                this.draw();
+            }
+
+            // 文字换行工具方法
+            drawTextLine(ctx, text, x, y, lineHeight) {
+                let line = '';
+                let startX = x;
+                let startY = y;
+                const maxWidth = 70;
+                for (let i = 0; i < text.length; i++) {
+                    const testLine = line + text[i];
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && i > 0) {
+                        ctx.fillText(line, startX, startY);
+                        line = text[i];
+                        startY += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, startX, startY);
+            }
+
+            draw() {
+                const ctx = this.ctx,
+                    size = this.size,
+                    cx = size / 2,
+                    cy = size / 2,
+                    radius = size / 2 - 12;
+                ctx.clearRect(0, 0, size, size);
+                const n = this.options.length;
+                if (n === 0) {
+                    ctx.fillStyle = '#eee';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 空状态字体优化
+                    ctx.font = '18px "Microsoft YaHei", "PingFang SC", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#666';
+                    ctx.fillText('暂无候选', cx, cy);
+                    return;
+                }
+                const slice = (Math.PI * 2) / n;
+                for (let i = 0; i < n; i++) {
+                    const start = this.angle + i * slice,
+                        end = this.angle + (i + 1) * slice;
+                    ctx.fillStyle = this.colors[i % this.colors.length];
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, radius, start, end);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    const mid = start + slice / 2;
+                    const tx = cx + Math.cos(mid) * (radius * 0.55);
+                    const ty = cy + Math.sin(mid) * (radius * 0.55);
+                    
+                    // ========== 【字体核心修改区域】 ==========
+                    // 1. 设置美观中文字体 + 字号
+                    ctx.font = 'bold 16px "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // 2. 文字白色描边，防彩色背景看不清
+                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(this.options[i].name, tx, ty);
+                    
+                    // 3. 主体白色文字
+                    ctx.fillStyle = '#ffffff';
+                    // 长名称自动换行
+                    this.drawTextLine(ctx, this.options[i].name, tx, ty, 20);
+                    // ==========================================
+                }
+                // 中心圆
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // 中心GO文字优化
+                ctx.font = 'bold 16px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('GO', cx, cy);
+                // 指针
+                ctx.fillStyle = '#ff4d4d';
+                ctx.beginPath();
+                ctx.moveTo(cx + radius - 6, cy - 12);
+                ctx.lineTo(cx + radius + 20, cy);
+                ctx.lineTo(cx + radius - 6, cy + 12);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            spinTo(targetIdx, duration, callback) {
+                const n = this.options.length;
+                if (n === 0) return;
+                const slice = (Math.PI * 2) / n;
+                const targetAngle = Math.PI * 2 * 4 + (Math.PI * 2 - (targetIdx * slice + slice / 2));
+                const startAngle = this.angle,
+                    diff = targetAngle - startAngle,
+                    startTime = performance.now();
+                let frameCount = 0;
+                const animate = (now) => {
+                    const elapsed = now - startTime,
+                        progress = Math.min(elapsed / duration, 1);
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    this.angle = startAngle + diff * ease;
+                    this.draw();
+                    // 播放嗒嗒声 (每6帧一次)
+                    frameCount++;
+                    if (frameCount % 6 === 0 && progress < 1) {
+                        playTick();
+                    }
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else if (callback) {
+                        callback(this.options[targetIdx]);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // ============================================================
+        //  事件绑定 & 启动
+        // ============================================================
+        $('category-select').addEventListener('change', loadRestaurants);
+        init();
+    </script>
+
+</body>
 </html>

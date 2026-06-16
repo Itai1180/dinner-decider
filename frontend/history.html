@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> 随机晚餐</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <style>
+    .nav {
+      width: 100%;
+      max-width: var(--page-max-width);
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 35px var(--color-shadow);
+      position: sticky;
+      top: 20px;
+      z-index: 100;
+    }
+    .nav .logo {
+      font-size: 20px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .nav .links {
+      display: flex;
+      gap: 8px;
+    }
+    .nav .links a {
+      text-decoration: none;
+      color: var(--color-text);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: 0.2s;
+    }
+    .nav .links a:hover, .nav .links a.active {
+      background: rgba(255, 107, 53, 0.1);
+      color: var(--color-primary);
+    }
+    .nav .user-info {
+      font-size: 14px;
+      color: var(--color-text-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-center {
+      max-width: var(--page-max-width);
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: rgba(255, 107, 53, 0.12);
+      color: #ff6b35;
+      border: 1px solid rgba(255, 107, 53, 0.25);
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .back-btn:hover {
+      background: rgba(255, 107, 53, 0.2);
+      transform: translateX(-3px);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stats {
+      text-align: center;
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .stats strong {
+      color: #ff4d4d;
+      font-size: 18px;
+    }
+
+    .history-list {
+      list-style: none;
+      margin-bottom: 24px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
+      margin-bottom: 8px;
+      transition: 0.2s;
+      border: 1px solid transparent;
+    }
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(255, 184, 0, 0.25);
+      transform: translateX(4px);
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .item-index {
+      font-weight: 700;
+      color: #ccc;
+      font-size: 14px;
+      min-width: 28px;
+    }
+
+    .item-name {
+      font-weight: 700;
+      font-size: 17px;
+      color: #2b2b2b;
+    }
+    .item-name .restaurant-id {
+      font-weight: 400;
+      font-size: 13px;
+      color: #aaa;
+      margin-left: 8px;
+    }
+
+    .item-time {
+      color: #888;
+      font-size: 14px;
+      background: rgba(0,0,0,0.03);
+      padding: 4px 14px;
+      border-radius: 30px;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: #aaa;
+    }
+    .empty-state .big-emoji {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 16px;
+    }
+    .empty-state p {
+      font-size: 16px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .pagination .page-info {
+      font-size: 15px;
+      color: #666;
+      font-weight: 500;
+      padding: 0 8px;
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 0; }
+      .header { flex-direction: column; align-items: stretch; gap: 12px; }
+      .header-left { flex-wrap: wrap; }
+      .user-area { justify-content: flex-end; }
+      .history-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .item-time { align-self: flex-start; font-size: 13px; }
+      .pagination { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">🍽 随机晚饭决定器</div>
+  <div class="links">
+    <a href="index.html">大转盘</a>
+    <a href="history.html" class="active">历史记录</a>
+    <a href="admin.html" id="admin-link" style="display:none">餐馆管理</a>
+  </div>
+  <div class="user-info">
+    <span id="nav-nickname">未登录</span>
+    <button class="btn btn-secondary btn-sm" id="nav-logout">退出</button>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <div class="header-left">
+      <a href="index.html" class="back-btn">← 返回转盘</a>
+      <span class="gradient-title" style="font-size:28px;">📋 抽取历史</span>
+    </div>
+    <div class="user-area">
+      <span class="user-nickname" id="userNickname" style="font-weight:600;color:#ff6b35;">未登录</span>
+      <button class="btn btn-secondary btn-sm" id="logoutBtn">退出</button>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats">共 <strong id="totalCount">0</strong> 条记录</div>
+
+  <!-- 列表 -->
+  <ul class="history-list" id="historyList">
+    <li class="empty-state">
+      <span class="big-emoji">🍽️</span>
+      <p>还没有抽取记录，<br>快去转盘决定今晚吃什么吧！</p>
+    </li>
+  </ul>
+
+  <!-- 分页 -->
+  <div class="pagination">
+    <button class="btn btn-secondary" id="prevPage" disabled>上一页</button>
+    <span class="page-info" id="pageInfo">第 1 / 1 页</span>
+    <button class="btn btn-secondary" id="nextPage" disabled>下一页</button>
+  </div>
+</div>
+
+<script type="module">
+import {
+  apiFetch,
+  showToast,
+  formatDate,
+  requireLogin,
+  doLogout
+} from '/js/common.js';
+
+const historyList = document.getElementById('historyList');
+const totalCount = document.getElementById('totalCount');
+const pageInfo = document.getElementById('pageInfo');
+const prevBtn = document.getElementById('prevPage');
+const nextBtn = document.getElementById('nextPage');
+const userNickname = document.getElementById('userNickname');
+const logoutBtn = document.getElementById('logoutBtn');
+const navNickname = document.getElementById('nav-nickname');
+const navLogout = document.getElementById('nav-logout');
+
+let currentPage = 1;
+const pageSize = 10;
+let totalRecords = 0;
+
+async function loadHistory(page = 1) {
+  try {
+    const url = `/api/history/?page=${page}&page_size=${pageSize}`;
+    const data = await apiFetch(url);
+
+    if (data.code === 200) {
+      const list = data.data.list || [];
+      totalRecords = data.data.total || 0;
+      const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+
+      totalCount.textContent = totalRecords;
+      pageInfo.textContent = `第 ${page} / ${totalPages} 页`;
+      prevBtn.disabled = (page <= 1);
+      nextBtn.disabled = (page >= totalPages);
+
+      if (list.length === 0) {
+        historyList.innerHTML = `
+          <li class="empty-state">
+            <span class="big-emoji">🍽️</span>
+            <p>还没有抽取记录，<br>快去转盘决定今晚吃什么吧！</p>
+          </li>
+        `;
+      } else {
+        historyList.innerHTML = list.map((item, index) => {
+          const seq = (page - 1) * pageSize + index + 1;
+          const timeStr = formatDate(item.drawn_at);
+          const idInfo = item.restaurant_id ? `#${item.restaurant_id}` : '已删除';
+          return `
+            <li class="history-item">
+              <div class="item-left">
+                <span class="item-index">${seq}</span>
+                <span class="item-name">${item.restaurant_name} <span class="restaurant-id">${idInfo}</span></span>
+              </div>
+              <span class="item-time">${timeStr}</span>
+            </li>
+          `;
+        }).join('');
+      }
+
+      currentPage = page;
+    } else if (data.code === 4010) {
+      window.location.href = '/login.html?next=' + encodeURIComponent(window.location.pathname);
+    } else {
+      showToast('加载历史失败：' + data.msg, 'error');
+    }
+  } catch (_) {
+    showToast('网络异常，请检查后端服务', 'error');
+  }
+}
+
+prevBtn.addEventListener('click', () => {
+  if (currentPage > 1) loadHistory(currentPage - 1);
+});
+nextBtn.addEventListener('click', () => {
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  if (currentPage < totalPages) loadHistory(currentPage + 1);
+});
+
+logoutBtn.addEventListener('click', async () => {
+  if (!confirm('确认退出登录吗？')) return;
+  const ok = await doLogout();
+  if (ok) {
+    window.location.href = '/login.html';
+  } else {
+    showToast('登出失败', 'error');
+  }
+});
+
+navLogout.addEventListener('click', async () => {
+  if (!confirm('确认退出登录吗？')) return;
+  const ok = await doLogout();
+  if (ok) {
+    window.location.href = '/login.html';
+  } else {
+    showToast('登出失败', 'error');
+  }
+});
+
+async function init() {
+  const loggedIn = await requireLogin();
+  if (!loggedIn) return;
+
+  try {
+    const me = await apiFetch('/api/me/');
+    if (me.code === 200) {
+      userNickname.textContent = me.data.nickname || '用户';
+      navNickname.textContent = me.data.nickname || '用户';
+      if (me.data.is_admin) {
+        document.getElementById('admin-link').style.display = 'inline';
+      }
+    }
+  } catch (_) {}
+
+  await loadHistory(1);
+}
+
+init();
+</script>
+</body>
+</html>
