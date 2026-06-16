@@ -24,18 +24,24 @@ class Restaurant(models.Model):
 
     class Meta:
         db_table = "app_restaurant"
+        ordering = ["-weight", "id"]
 
 
 class DrawHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id")
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="draw_histories",
+    )
     restaurant = models.ForeignKey(
         Restaurant,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
-        db_column="restaurant_id",
     )
     restaurant_name = models.CharField(max_length=100)
     drawn_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "app_draw_history"
+        ordering = ["-drawn_at"]
