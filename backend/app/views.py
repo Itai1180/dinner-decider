@@ -1,7 +1,6 @@
 import json
 
 from django.contrib.auth.hashers import check_password, make_password
-from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .common import (
@@ -83,6 +82,9 @@ def login(request):
 
 @csrf_exempt
 def logout(request):
+    if request.method != "POST":
+        return api_response(CODE_PARAM, msg="请使用 POST")
+
     request.session.flush()
     return api_response(data=None)
 
@@ -100,7 +102,3 @@ def me(request):
             "is_admin": 1 if user.is_admin else 0,
         }
     )
-
-
-def index_placeholder(request):
-    return HttpResponse("Dinner index placeholder")

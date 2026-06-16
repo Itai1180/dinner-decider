@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
+backend/db.sqlite3
 db.sqlite3
+backend/**/__pycache__/
 .venv/
 venv/
 .env
@@ -8,3 +10,6 @@ venv/
 .vscode/
 *.log
 packages/
+nginx/dinner.conf
+nginx-1.29.6/
+nginx-1.29.6/logs/
